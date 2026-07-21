@@ -1,15 +1,20 @@
 """
-Billing Service — legacy, deterministic business logic.
+Billing Service.
 
-This module contains two very different kinds of functions, on purpose.
-The BMAD exercise starts here: read calculate_bill and answer_customer_query
-and ask, for each one, "should AI touch this?"
+calculate_bill stays exactly as it was — the BMAD analysis said no AI here,
+and that decision doesn't change just because a RAG pipeline exists elsewhere
+in this file.
+
+answer_customer_query is now implemented per the BMAD decision: RAG.
 """
 
+import os
 from database.invoices import get_invoice
 
 LATE_FEE_FLAT = 50
 TAX_RATE = 0.18
+
+_collection = None
 
 
 def calculate_tax(invoice):
@@ -21,7 +26,7 @@ def calculate_late_fee(invoice):
 
 
 def calculate_bill(customer_id):
-    """Deterministic, auditable, financial. Do not put AI here."""
+    """Deterministic, auditable, financial. Unchanged since Commit 1 — BMAD said no AI here."""
     invoice = get_invoice(customer_id)
     if not invoice:
         return None
@@ -38,10 +43,47 @@ def calculate_bill(customer_id):
     }
 
 
+def _get_collection():
+    """Lazily connect to the ChromaDB collection built by knowledge/build_index.py."""
+    global _collection
+    if _collection is None:
+        import chromadb
+        store_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "vector_store", "chroma")
+        client = chromadb.PersistentClient(path=store_path)
+        _collection = client.get_or_create_collection("billing_policy")
+    return _collection
+
+
+def retrieve_policy_context(question, k=3):
+    collection = _get_collection()
+    results = collection.query(query_texts=[question], n_results=k)
+    return "\n".join(results["documents"][0]) if results["documents"] else ""
+
+
 def answer_customer_query(question):
     """
-    Not implemented. Every billing question today either goes unanswered
-    or is manually handled by a support agent reading the policy PDF.
-    This is the function BMAD will target first.
+    RAG per the BMAD decision in BMAD_ANALYSIS.md: this is repetitive,
+    natural-language, knowledge-based — a good RAG opportunity, not an
+    agent (no multi-step action is needed to just answer a question).
     """
-    pass
+    from openai import OpenAI
+    client = OpenAI()
+
+    context = retrieve_policy_context(question)
+    if not context:
+        return "I don't have policy information to answer that — this will be routed to a human agent."
+
+    system_prompt = (
+        "You are a telecom billing assistant. Answer using only the policy text "
+        "provided below. If the answer is not present in the text, say the "
+        "information is not available — do not guess.\n\nPolicy context:\n" + context
+    )
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": question},
+        ],
+    )
+    return response.choices[0].message.content
+
