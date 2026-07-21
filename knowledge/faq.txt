@@ -1,0 +1,18 @@
+Billing FAQ
+
+Q: Why was I charged a late fee?
+A: A late fee of Rs. 50 applies under Clause 4.2 if payment is not received
+within 15 days of the bill date.
+
+Q: Why does my bill show two tax lines?
+A: GST (Clause 2.3) is shown as a separate line item at 18% of the base
+charge — this is not a duplicate charge.
+
+Q: When are roaming charges billed?
+A: Roaming charges (Clause 6.1) are billed at the end of the cycle in which
+they were incurred, which can make them appear on a later bill than expected.
+
+Q: Can I dispute a charge?
+A: Yes — under Clause 7.4, any charge can be disputed within 30 days of the
+bill date. The disputed amount is held, not automatically waived, pending
+review.

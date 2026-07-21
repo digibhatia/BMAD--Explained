@@ -1,0 +1,24 @@
+Billing Policy — Customer-Facing Extract
+(This file stands in for a PDF policy document that would normally be
+extracted with the pdf skill / a PDF-to-text pipeline. Content is identical
+in structure to a real clause-numbered policy.)
+
+Clause 3.1 — Base Charge
+The base charge is billed monthly in advance according to the customer's
+selected plan.
+
+Clause 4.2 — Late Fee
+A late fee of Rs. 50 applies if payment is not received within 15 days of
+the bill date.
+
+Clause 2.3 — Tax
+GST is applied at 18% on the base plan charge and shown as a separate line
+item on every invoice.
+
+Clause 6.1 — Roaming Charges
+Roaming charges are billed at the end of the billing cycle in which they
+were incurred, and are shown separately from the base charge.
+
+Clause 7.4 — Disputed Charges
+Customers may dispute any charge within 30 days of the bill date. Disputed
+charges are held (not waived) pending review.
