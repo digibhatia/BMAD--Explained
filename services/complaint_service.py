@@ -1,9 +1,9 @@
 """
-Complaint Service — legacy, rigid priority routing.
+Complaint Service — LEGACY, superseded by agents/complaint_agent.py per the
+BMAD decision in BMAD_ANALYSIS.md ("Complaint Routing -> Agent").
 
-Business has asked for sentiment detection, fraud detection and SLA
-validation on top of this. None of that fits an if/else ladder — this
-is the module BMAD will redesign as an agent.
+Kept in the repository, unused, so learners can diff the old if/else
+routing against the new agentic graph and see exactly what changed and why.
 """
 
 from database.tickets import create_ticket, close_ticket
@@ -14,6 +14,7 @@ def notify_manager(ticket):
 
 
 def route_complaint(customer_id, priority, description):
+    """Superseded — see agents/complaint_agent.py: route_complaint_agentic()."""
     ticket = create_ticket(customer_id, priority, description)
 
     if priority == "HIGH":
