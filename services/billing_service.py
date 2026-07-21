@@ -10,6 +10,7 @@ answer_customer_query is now implemented per the BMAD decision: RAG.
 
 import os
 from database.invoices import get_invoice
+from database.customer import get_customer
 
 LATE_FEE_FLAT = 50
 TAX_RATE = 0.18
@@ -60,11 +61,14 @@ def retrieve_policy_context(question, k=3):
     return "\n".join(results["documents"][0]) if results["documents"] else ""
 
 
-def answer_customer_query(question):
+def answer_customer_query(question, customer_id=None):
     """
-    RAG per the BMAD decision in BMAD_ANALYSIS.md: this is repetitive,
-    natural-language, knowledge-based — a good RAG opportunity, not an
-    agent (no multi-step action is needed to just answer a question).
+    RAG per the BMAD decision in BMAD_ANALYSIS.md — now combined with a
+    structured CRM lookup when a customer_id is available, following the
+    same structured-vs-unstructured split taught in the Integration
+    Engineering module: exact figures come from get_customer/get_invoice,
+    policy explanations come from the retrieved context. Never let the
+    retrieved text stand in for a real account figure.
     """
     from openai import OpenAI
     client = OpenAI()
@@ -73,10 +77,23 @@ def answer_customer_query(question):
     if not context:
         return "I don't have policy information to answer that — this will be routed to a human agent."
 
+    account_context = ""
+    if customer_id:
+        customer = get_customer(customer_id)
+        invoice = get_invoice(customer_id)
+        if customer and invoice:
+            account_context = (
+                f"\n\nCustomer account (structured, from CRM — use for any exact figures):\n"
+                f"plan={customer['plan']}, base_charge={invoice['base_charge']}, "
+                f"roaming_charges={invoice['roaming_charges']}, days_since_bill={invoice['days_since_bill']}"
+            )
+
     system_prompt = (
-        "You are a telecom billing assistant. Answer using only the policy text "
-        "provided below. If the answer is not present in the text, say the "
-        "information is not available — do not guess.\n\nPolicy context:\n" + context
+        "You are a telecom billing assistant. Use the policy context for explanations "
+        "and the customer account data for any exact figures. Never invent a number "
+        "that isn't in the account data below. If neither source answers the question, "
+        "say the information is not available — do not guess."
+        + "\n\nPolicy context:\n" + context + account_context
     )
     response = client.chat.completions.create(
         model="gpt-4o",

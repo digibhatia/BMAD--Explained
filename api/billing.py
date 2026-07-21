@@ -15,7 +15,8 @@ def get_bill(customer_id):
 @billing_bp.route("/billing-query", methods=["POST"])
 def billing_query():
     question = request.json.get("question", "")
-    answer = answer_customer_query(question)
+    customer_id = request.json.get("customer_id")
+    answer = answer_customer_query(question, customer_id=customer_id)
     if answer is None:
         return jsonify({"error": "not implemented — routed to a human agent today"}), 501
     return jsonify({"answer": answer})
