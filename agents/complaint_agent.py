@@ -13,6 +13,7 @@ from typing import TypedDict, Optional
 from langgraph.graph import StateGraph, END
 
 from database.tickets import create_ticket
+from agents.classifier import classify_complaint, decide_escalation
 
 
 class ComplaintState(TypedDict):
@@ -37,23 +38,6 @@ def planner_node(state: ComplaintState) -> ComplaintState:
 
 
 # ---- Classifier ----
-def classify_complaint(description: str) -> dict:
-    """
-    Structured-output classification — same schema and validation discipline
-    as the Reliability & Structured Output Control module. Replace this stub
-    with a real LLM call + JSON schema validation in your own build.
-    """
-    text = description.lower()
-    if "fraud" in text or "unauthorized" in text:
-        severity = "critical"
-    elif "down" in text or "not working" in text or "outage" in text:
-        severity = "high"
-    else:
-        severity = "medium"
-    return {"type": "network" if "down" in text else "billing_or_service",
-            "severity": severity, "confidence_score": 0.86}
-
-
 def classifier_node(state: ComplaintState) -> ComplaintState:
     state["classification"] = classify_complaint(state["description"])
     return state
@@ -83,12 +67,7 @@ def validator_node(state: ComplaintState) -> ComplaintState:
 
 # ---- Escalation decision (hard rule, not model judgement) ----
 def decide_node(state: ComplaintState) -> str:
-    if not state["valid"]:
-        return "escalate"  # invalid classification is itself an escalation trigger
-    severity = state["classification"]["severity"]
-    if severity in ("high", "critical") or state["prior_ticket_count"] > 0:
-        return "escalate"
-    return "resolve"
+    return decide_escalation(state["classification"], state["prior_ticket_count"], state["valid"])
 
 
 # ---- Escalation ----

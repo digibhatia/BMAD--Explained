@@ -1,0 +1,6 @@
+question,expected_answer,source_clause
+"Why was I charged a late fee?","A late fee of Rs. 50 applies if payment is not received within 15 days of the bill date.","clause_4_2"
+"Why does my bill show a separate tax line?","GST is applied at 18% on the base plan charge and shown as a separate line item.","clause_2_3"
+"When are roaming charges billed?","Roaming charges are billed at the end of the billing cycle in which they were incurred.","clause_6_1"
+"Can I dispute a charge on my bill?","Yes, charges can be disputed within 30 days of the bill date and are held pending review.","clause_7_4"
+"How is my base charge billed?","The base charge is billed monthly in advance according to the selected plan.","clause_3_1"
